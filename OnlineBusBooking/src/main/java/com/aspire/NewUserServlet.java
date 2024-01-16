@@ -1,0 +1,102 @@
+
+/*Application Title:Online Bus Booking
+Author name:Parthasarathy E
+create on:07/02/2023
+last Modified Date and time:01/04/2023
+reviewed by:anushya
+reviewed Date:20/3/2023 */
+	
+package com.aspire;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class NewUserServlet
+ */
+public class NewUserServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public NewUserServlet() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String username =request.getParameter("username");
+		String userpassword= request.getParameter("password");
+		String phonenumber= request.getParameter("number");
+		
+		RequestDispatcher dispatcher=null;
+		Connection connection= null;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			connection= DriverManager.getConnection("jdbc:mysql://localhost:3306/onlinebusbooking?useSSL=false","root","partha");
+			String query = "SELECT MAX(userid) AS users_id FROM usersdetails";
+			PreparedStatement preparedstatement = connection.prepareStatement(query);
+			ResultSet resultset = preparedstatement.executeQuery();
+			int users_id= 0;
+			if(resultset.next()) 
+				{
+				users_id= resultset.getInt("users_id")+1;
+				}
+			else 
+				{
+				users_id= 1;
+					
+				}
+			String userid = Integer.toString(users_id);
+			String query1 = "insert into usersdetails values(?,?,?,?)";
+			PreparedStatement preparedstatement1=connection.prepareStatement(query1);
+			preparedstatement1.setString(1,userid);
+			preparedstatement1.setString(2,username);
+			preparedstatement1.setString(3,userpassword);
+			preparedstatement1.setString(4,phonenumber);
+			int rowCount= preparedstatement1.executeUpdate();
+			dispatcher=request.getRequestDispatcher("UserLogin.jsp");
+		    if(rowCount>0) {
+				request.setAttribute("status","success");
+			}
+			else {
+				request.setAttribute("status", "failed");
+			}
+			dispatcher.forward(request, response);
+		}catch(Exception exception) {
+			exception.printStackTrace();
+		}finally {
+			try {
+				connection.close();
+			} catch (SQLException exception) {
+				// TODO Auto-generated catch block
+				exception.printStackTrace();
+			}
+		}
+		}
+	
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}
